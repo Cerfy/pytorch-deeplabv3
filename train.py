@@ -13,6 +13,7 @@ import sys
 import os
 import os.path as osp
 from deeplabv3 import Res_Deeplab
+from datasets import BerkeleyDataset
 import random
 import timeit
 import matplotlib.pyplot as plt
@@ -114,7 +115,6 @@ def adjust_learning_rate(optimizer, i_iter):
 
 
 
-
 def main():
     if not args.gpu == 'None':
         os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
@@ -145,6 +145,46 @@ def main():
     if not os.path.exists(args.snapshot_dir):
         print("Creating Checkpoint Folder")
         os.makedirs(args.snapshot_dir)
+
+    berkeleyDataset = BerkeleyDataset(args.data_dir, args.data_list, max_iters=args.num_steps*args.batch_size, scale=args.random_scale, mirror=args.random_mirror, mean=IMG_MEAN)
+
+    train_loader = data.DataLoader(berkeleyDataset, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True) 
+
+    optimizer = optim.SGD([{'params': filter(lambda p: p.requires_grad, model.parameters()), 'lr': args.learning_rate }], 
+                lr=args.learning_rate, momentum=args.momentum,weight_decay=args.weight_decay)
+    optimizer.zero_grad()
+
+    interp = nn.Upsample(size=input_size, mode='bilinear', align_corners=True)
+
+
+    for i_iter, batch in enumerate(train_loader):
+        images, labels, _, _ = batch
+        images = images.cuda()
+        labels = labels.long().cuda()
+
+        optimizer.zero_grad()
+        lr = adjust_learning_rate(optimizer, i_iter)
+        pred = interp(model(images))
+
+
+        loss = loss_calc(pred, labels)
+
+        ### TODO: Add Criterion
+
+        loss.backward()
+        optimizer.step()
+
+        print("Iteration = {} of {} completed, loss = {}".format(i_iter, args.num_steps, loss.data.cpu().numpy()))
+
+        if i_iter >= args.num_steps-1:
+            print("Save Model ....")
+            torch.save(model.state_dict(), osp.join(args.snapshots_dir, 'BDD_' + str(i_iter) + '.pth'))
+            break
+        if i_iter % args.save_pred_every == 0 and i_iter != 0:
+            print("Taking snapshot ...")
+            torch.save(deeplab.state_dict(), osp.join(args.snapshot_dir, 'BDD_' + str(i_iter) + '.pth'))
+    end = timeit.default_timer()
+    print("Total time it took was {} seconds".format(end-start))
 
 if __name__ == '__main__':
     main()

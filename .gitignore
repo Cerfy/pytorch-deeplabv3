@@ -103,5 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-
+# Project image files, folders and .pth
 dataset/resnet101-imagenet.pth
+BDD_Deepdrive/
