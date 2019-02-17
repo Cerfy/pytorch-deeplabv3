@@ -106,3 +106,6 @@ venv.bak/
 # Project image files, folders and .pth
 dataset/resnet101-imagenet.pth
 BDD_Deepdrive/
+*.pth
+Things_to_ask.txt
+outputs/

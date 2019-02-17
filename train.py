@@ -25,7 +25,7 @@ IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
 
 ### Define Constants ###
 BATCH_SIZE = 2
-DATA_DIRECTORY = './BDD_Deepdrive/bdd100k/'
+DATA_DIRECTORY = 'D:/BDD_Deepdrive/bdd100k/'
 DATA_LIST_PATH = './dataset/list/BDD_train.txt'
 IGNORE_LABEL = 255
 INPUT_SIZE = '321,321'
@@ -178,11 +178,11 @@ def main():
 
         if i_iter >= args.num_steps-1:
             print("Save Model ....")
-            torch.save(model.state_dict(), osp.join(args.snapshots_dir, 'BDD_' + str(i_iter) + '.pth'))
+            torch.save(model.state_dict(), osp.join(args.snapshot_dir, 'BDD_' + str(i_iter) + '.pth'))
             break
         if i_iter % args.save_pred_every == 0 and i_iter != 0:
             print("Taking snapshot ...")
-            torch.save(deeplab.state_dict(), osp.join(args.snapshot_dir, 'BDD_' + str(i_iter) + '.pth'))
+            torch.save(model.state_dict(), osp.join(args.snapshot_dir, 'BDD_' + str(i_iter) + '.pth'))
     end = timeit.default_timer()
     print("Total time it took was {} seconds".format(end-start))
 
