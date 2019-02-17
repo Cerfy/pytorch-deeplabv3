@@ -169,7 +169,6 @@ def main():
 
         loss = loss_calc(pred, labels)
 
-        ### TODO: Add Criterion
 
         loss.backward()
         optimizer.step()
